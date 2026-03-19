@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Rethink+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+    background: #000;
+    font-family: 'Rethink Sans', sans-serif !important;
+  }
+  * {
+    font-family: 'Rethink Sans', sans-serif !important;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(3, 8, 22, 0.76);
+    backdrop-filter: blur(22px) saturate(1.2);
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(255, 255, 255, 0.03);
+  }
+
+  .glass-panel {
+    @apply glass rounded-2xl;
+  }
+
+  .glow-cyan   { text-shadow: 0 0 12px rgba(255, 255, 255, 0.22); }
+  .glow-orange { text-shadow: 0 0 12px rgba(255, 120, 0, 0.60); }
+  .glow-red    { text-shadow: 0 0 12px rgba(255, 32, 32, 0.55); }
+
+  .icon-glow-cyan   { filter: drop-shadow(0 0 6px rgba(255,255,255,0.25)); }
+  .icon-glow-orange { filter: drop-shadow(0 0 6px rgba(255,120,0,0.7)); }
+
+  ::-webkit-scrollbar        { width: 5px; }
+  ::-webkit-scrollbar-track  { background: rgba(0,0,0,0.2); }
+  ::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.18); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
+
+  /* Space texture overlay for the globe background */
+  .space-texture {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.40;
+    background-color: #000;
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.12) 0 1px, transparent 2px),
+      radial-gradient(circle at 20% 70%, rgba(255,255,255,0.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 35% 40%, rgba(255,255,255,0.07) 0 1px, transparent 2px),
+      radial-gradient(circle at 55% 25%, rgba(255,255,255,0.10) 0 1px, transparent 2px),
+      radial-gradient(circle at 65% 60%, rgba(255,255,255,0.07) 0 1px, transparent 2px),
+      radial-gradient(circle at 78% 15%, rgba(255,255,255,0.10) 0 1px, transparent 2px),
+      radial-gradient(circle at 85% 80%, rgba(255,255,255,0.06) 0 1px, transparent 2px),
+      radial-gradient(circle at 92% 45%, rgba(255,255,255,0.06) 0 1px, transparent 2px),
+      linear-gradient(180deg, rgba(2,1,7,1) 0%, rgba(0,0,0,1) 70%);
+    mix-blend-mode: screen;
+    filter: contrast(120%) brightness(115%);
+  }
+}

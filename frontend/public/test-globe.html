@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UrbanChill Globe Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0a0a1a; color: white; }
+    #map { width: 100vw; height: 100vh; }
+    .overlay {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(15,23,42,0.95); padding: 15px 30px; border-radius: 12px;
+      border: 1px solid rgba(0,220,255,0.4); z-index: 1000; text-align: center;
+    }
+    .error {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,0,0,0.9); padding: 15px 30px; border-radius: 8px; z-index: 1000;
+    }
+  </style>
+  <link href="https://unpkg.com/maplibre-gl@5.0.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@5.0.2/dist/maplibre-gl.js"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="overlay" id="status">Loading...</div>
+
+  <script>
+    const zones = [
+      { name: "New Delhi", lng: 77.2090, lat: 28.6139, severity: "critical", lst: 38 },
+      { name: "Mumbai", lng: 72.8777, lat: 19.0760, severity: "high", lst: 36 },
+      { name: "Lagos", lng: 3.3792, lat: 6.5244, severity: "medium", lst: 34 },
+      { name: "Mexico City", lng: -99.1332, lat: 19.4326, severity: "critical", lst: 39 },
+      { name: "Cairo", lng: 31.2357, lat: 30.0444, severity: "high", lst: 37 }
+    ];
+
+    const getColor = (s) => {
+      s = s?.toLowerCase();
+      if (s === 'critical') return '#FF2020';
+      if (s === 'high') return '#FF8C00';
+      if (s === 'medium') return '#FFD700';
+      return '#00FF88';
+    };
+
+    document.getElementById('status').textContent = 'Initializing map...';
+
+    try {
+      const map = new maplibregl.Map({
+        container: 'map',
+        style: {
+          version: 8,
+          name: 'Test Globe',
+          projection: 'globe',
+          center: [0, 20],
+          zoom: 1.8,
+          sources: {
+            'esri-satellite': {
+              type: 'raster',
+              tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+              tileSize: 256,
+              maxzoom: 19
+            }
+          },
+          layers: [
+            { id: 'background', type: 'background', paint: { 'background-color': '#0a0a1a' } },
+            { id: 'satellite', type: 'raster', source: 'esri-satellite' }
+          ]
+        },
+        maxZoom: 18,
+        minZoom: 1.5
+      });
+
+      map.addControl(new maplibregl.NavigationControl());
+      map.addControl(new maplibregl.GlobeControl());
+
+      map.on('load', () => {
+        document.getElementById('status').textContent = 'Map loaded! Drag to rotate, scroll to zoom.';
+
+        if (map.getFog) {
+          map.setFog({
+            color: 'rgb(10,10,30)',
+            'high-color': 'rgb(20,40,100)',
+            'horizon-blend': 0.1,
+            'space-color': 'rgb(5,5,15)',
+            'star-intensity': 0.8
+          });
+        }
+
+        const features = zones.map(z => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [z.lng, z.lat] },
+          properties: { name: z.name, severity: z.severity, temperature: z.lst, color: getColor(z.severity) }
+        }));
+
+        map.addSource('zones', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features }
+        });
+
+        map.addLayer({
+          id: 'circles',
+          type: 'circle',
+          source: 'zones',
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 5, 8, 14],
+            'circle-color': ['get', 'color'],
+            'circle-opacity': 0.9,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff'
+          }
+        });
+
+        map.addLayer({
+          id: 'labels',
+          type: 'symbol',
+          source: 'zones',
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-offset': [0, 1.5],
+            'text-anchor': 'top'
+          },
+          paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
+          minzoom: 2
+        });
+
+        setTimeout(() => {
+          document.getElementById('status').style.display = 'none';
+        }, 3000);
+      });
+
+      map.on('error', (e) => {
+        document.getElementById('status').innerHTML = 'ERROR: ' + (e.error?.message || 'Map failed');
+        document.getElementById('status').style.background = 'rgba(255,0,0,0.9)';
+      });
+
+    } catch (err) {
+      document.getElementById('status').innerHTML = 'ERROR: ' + err.message;
+      document.getElementById('status').style.background = 'rgba(255,0,0,0.9)';
+    }
+  </script>
+</body>
+</html>

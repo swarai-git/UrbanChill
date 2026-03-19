@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Shivaji Nagar", "temp": 44, "ndvi": 0.08, "poverty": 82 },
+      "geometry": { "type": "Point", "coordinates": [73.856, 18.531] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Pimpri Industrial", "temp": 47, "ndvi": 0.05, "poverty": 70 },
+      "geometry": { "type": "Point", "coordinates": [73.820, 18.627] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Chinchwad", "temp": 41, "ndvi": 0.15, "poverty": 55 },
+      "geometry": { "type": "Point", "coordinates": [73.798, 18.648] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Bhosari", "temp": 45, "ndvi": 0.06, "poverty": 78 },
+      "geometry": { "type": "Point", "coordinates": [73.851, 18.672] }
+    }
+  ]
+}

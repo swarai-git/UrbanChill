@@ -1,0 +1,239 @@
+## Globe View Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      URBANCHILL GLOBE VIEW FLOW                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+                        USER INTERACTION FLOW
+                        ═══════════════════════
+
+                            ┌──────────────┐
+                            │ APP LOADS    │
+                            │ Globe Page   │
+                            └────────┬─────┘
+                                     │
+                    ┌────────────────┴────────────────┐
+                    │                                 │
+            ┌───────▼────────┐          ┌────────────▼─────┐
+            │ Fetch Heat     │          │ Auto-Rotate Globe│
+            │ Zones from API │          │ Waiting for      │
+            │                │          │ Location Select  │
+            └───────┬────────┘          └────────┬─────────┘
+                    │                            │
+                    │   ┌──────────────────────┐ │
+                    └──▶│ Display Heat Zones   │◀┘
+                        │ on 3D Globe          │
+                        │ Points & Rings       │
+                        └──────────┬───────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │ Zone Clicked or            │
+                    │ Location Selected          │
+                    └──────────┬─────────────────┘
+                               │
+            ┌──────────────────┴──────────────────┐
+            │                                     │
+    ┌───────▼────────────┐          ┌────────────▼─────────┐
+    │ Animate Globe      │          │ Stop Auto-Rotation  │
+    │ Camera to Location │          │ Enable User Control │
+    │ Duration: 1.5s     │          │                     │
+    └───────┬────────────┘          └────────┬────────────┘
+            │                                │
+            └────────────────┬───────────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │ Monitor Zoom     │
+                    │ Level Every 100ms│
+                    └────────┬─────────┘
+                             │
+            ┌────────────────┴────────────────┐
+            │                                 │
+    ┌───────▼────────────────┐      ┌────────▼──────────┐
+    │ Zoom Level > 80        │      │ Zoom Level < 80   │
+    │ (High Altitude)        │      │ (Close View)      │
+    │ Keep Globe View        │      │ Trigger Detailed  │
+    │ Show Zoom Indicator    │      │ View              │
+    └────────┬────────────────┘      └────────┬──────────┘
+             │                                │
+             │        ┌──────────────────────┘
+             │        │
+             │   ┌────▼─────────────────────────┐
+             │   │ Fade Transition (0.4s)       │
+             │   │ Globe View exits             │
+             │   │ DetailedMapView enters       │
+             │   └────┬────────────────────────┘
+             │        │
+             └────►└──┴────────────────────────────────────────┐
+                                                               │
+                      ┌──────────────────────────────────────┐ │
+                      │     DETAILED MAP VIEW              │ │
+                      ├──────────────────────────────────────┤ │
+                      │ • MapLibre GL Rendering            │ │
+                      │ • Heat Zone Markers & Heatmap      │◀┘
+                      │ • Multiple Map Styles              │
+                      │ • Pitch/Zoom Controls              │
+                      │ • Interactive Zone Popups          │
+                      └──────────────┬─────────────────────┘
+                                     │
+                    ┌────────────────┴────────────────┐
+                    │ User Action                    │
+                    └────────────────┬────────────────┘
+                                     │
+            ┌────────────────────────┼────────────────────────┐
+            │                        │                       │
+    ┌───────▼──────────┐   ┌────────▼─────────┐   ┌────────▼───┐
+    │ Close Button     │   │ Zoom Out         │   │ Pan/Rotate │
+    │ Clicked          │   │ Below 80         │   │ Around Map │
+    │                  │   │                  │   │            │
+    └───────┬──────────┘   └────────┬─────────┘   └────────┬───┘
+            │                       │                      │
+            │       ┌───────────────┴──────────────┐       │
+            │       │ Transition Back to Globe     │       │
+            │       │ DetailedMapView exits        │       │
+            │       │ GlobeView enters (0.4s)      │       │
+            │       └───────────┬──────────────────┘       │
+            │                   │                          │
+            │       ┌───────────┴──────────────┐           │
+            │       │                          │           │
+    ┌───────▼──┐  ┌─▼────────────────────┐   │           │
+    │ Resume   │  │ Continue Exploring   │   │           │
+    │ Auto-    │  │ in Detailed View      │   │           │
+    │ Rotation │  │                      │   │           │
+    └──────────┘  └──────────────────────┘   │           │
+                                              │           │
+                                              └───────────┘
+                                                    (Stay in
+                                                    Detailed View)
+
+
+                        COMPONENT HIERARCHY
+                        ═══════════════════════
+
+                    ┌─────────────────┐
+                    │   GlobePage     │ (Main Page)
+                    └────────┬────────┘
+                             │
+                ┌────────────┼────────────┐
+                │            │            │
+          ┌─────▼───┐  ┌─────▼────┐  ┌──▼────────┐
+          │ GlobeMap│  │ TopBar   │  │LeftBar   │
+          │Component│  │ Component│  │ Component│
+          └────┬────┘  └──────────┘  └──────────┘
+               │
+         ┌─────┴─────────────┐
+         │                   │
+    ┌────▼────────┐   ┌─────▼──────────────┐
+    │ Globe View  │   │ DetailedMapView    │
+    │ (3D Earth)  │   │ Component          │
+    │             │   │ (MapLibre GL)      │
+    └─────────────┘   │                    │
+                      └──────────────────┬─┘
+                                         │
+                          (Optional)     │
+                      ┌──────────────────┘
+                      │
+                  ┌───▼────────────────┐
+                  │ Advanced3DMapView  │
+                  │ Component          │
+                  │ (Deck.gl)          │
+                  └────────────────────┘
+
+
+                        DATA FLOW
+                        ═════════
+
+    API (/api/zones)
+         │
+         ▼
+    ┌──────────────┐
+    │ Heat Zones   │
+    │ Array[]      │
+    │ { lat, lng,  │
+    │   severity } │──┐
+    └──────────────┘  │
+                      │
+    User Selection    │      ┌─────────────┐
+    (onClick)         └──────▶ GlobeMap    │
+         │                    │ Component  │
+         ▼                    └──────┬─────┘
+    ┌──────────────┐                │
+    │ Selected     │────┐           │
+    │ Location     │    │           │
+    │ { lat, lng,  │    │           │
+    │   city }     │    │           ◀─┘
+    └──────────────┘    │
+                        │
+                   ┌────▼─────────────────┐
+                   │ DetailedMapView      │
+                   │ Receives:            │
+                   │ • center             │
+                   │ • heatZones          │
+                   │ • onClose callback   │
+                   └─────────────────────┘
+
+
+                    ANIMATION TRANSITIONS
+                    ═══════════════════════
+
+    1. GLOBE TO LOCATION ANIMATION
+       ┌────────────────────────────────────┐
+       │ State: selectedLocation changes     │
+       │ Duration: 1500ms                   │
+       │ Effect:                            │
+       │  • Camera pans to coordinate       │
+       │  • Camera zooms to location        │
+       │  • Smooth easing function          │
+       │  • Auto-rotation stops             │
+       └────────────────────────────────────┘
+
+    2. GLOBE TO DETAILS VIEW TRANSITION
+       ┌────────────────────────────────────┐
+       │ Trigger: zoomLevel < 80            │
+       │ Duration: 400ms                    │
+       │ Effect:                            │
+       │  • Globe opacity: 1 → 0            │
+       │  • Details opacity: 0 → 1          │
+       │  • Scale: 0.95 → 1                 │
+       │  • Smooth fade cross-fade          │
+       └────────────────────────────────────┘
+
+    3. DETAILS TO GLOBE TRANSITION
+       ┌────────────────────────────────────┐
+       │ Trigger: Close button or zoom out  │
+       │ Duration: 400ms                    │
+       │ Effect:                            │
+       │  • Details opacity: 1 → 0          │
+       │  • Globe opacity: 0 → 1            │
+       │  • Scale: 1 → 0.95                 │
+       │  • Auto-rotation resumes           │
+       └────────────────────────────────────┘
+
+
+                        STATE MANAGEMENT
+                        ════════════════════
+
+    GlobeMap States:
+    ┌──────────────────────────────────────┐
+    │ • zoomLevel: number (300)            │
+    │ • showDetailedView: boolean (false)  │
+    │ • detailedViewCenter: object (null)  │
+    │ • globeRef: useRef                   │
+    └──────────────────────────────────────┘
+
+    External Props:
+    ┌──────────────────────────────────────┐
+    │ • heatZones: Array[]                 │
+    │ • selectedLocation: object           │
+    │ • onZoneClick: function              │
+    └──────────────────────────────────────┘
+
+```
+
+## Key Points
+
+1. **Auto-Rotation**: Globe rotates automatically when idle, stops when user interacts
+2. **Zoom Monitoring**: Checks zoom level every 100ms to trigger view switch
+3. **Smooth Transitions**: Uses Framer Motion for GPU-accelerated animations
+4. **Data Flow**: Heat zones flow from API → Globe → Details view
+5. **User Control**: User can navigate globe or close detailed view to return
